@@ -64,6 +64,12 @@ trait LinkTrait
 	{
 		if (!in_array('parseLink', array_slice($this->context, 1)) && ($parts = $this->parseLinkOrImage($markdown)) !== false) {
 			list($text, $url, $title, $offset, $key) = $parts;
+			$extralinkattrs = '';
+			if (substr($url, 0, 1)=='+') {
+				// URL beginning with + should mean: open in new tab/window (target=_blank)
+				$url = substr($url, 1);
+				$extralinkattrs .= 'target="_blank" ';
+			}
 			return [
 				[
 					'link',
@@ -72,6 +78,7 @@ trait LinkTrait
 					'title' => $title,
 					'refkey' => $key,
 					'orig' => substr($markdown, 0, $offset),
+					'extralinkattrs' => $extralinkattrs,
 				],
 				$offset
 			];
@@ -104,6 +111,7 @@ trait LinkTrait
 					'title' => $title,
 					'refkey' => $key,
 					'orig' => substr($markdown, 0, $offset + 1),
+					'extralinkattrs' => '',
 				],
 				$offset + 1
 			];
@@ -203,7 +211,7 @@ REGEXP;
 		$decodedUrl = urldecode($block[1]);
 		$secureUrlText = preg_match('//u', $decodedUrl) ? $decodedUrl : $block[1];
 		$text = htmlspecialchars($secureUrlText, ENT_NOQUOTES | ENT_SUBSTITUTE, 'UTF-8');
-		return "<a href=\"$url\">$text</a>";
+		return "<a " . $block['extralinkattrs'] . "href=\"$url\">$text</a>";
 	}
 
 	protected function lookupReference($key)
@@ -227,7 +235,7 @@ REGEXP;
 				return $block['orig'];
 			}
 		}
-		return '<a href="' . htmlspecialchars($block['url'], ENT_COMPAT | ENT_HTML401, 'UTF-8') . '"'
+		return '<a ' . $block['extralinkattrs'] . 'href="' . htmlspecialchars($block['url'], ENT_COMPAT | ENT_HTML401, 'UTF-8') . '"'
 			. (empty($block['title']) ? '' : ' title="' . htmlspecialchars($block['title'], ENT_COMPAT | ENT_HTML401 | ENT_SUBSTITUTE, 'UTF-8') . '"')
 			. '>' . $this->renderAbsy($block['text']) . '</a>';
 	}
