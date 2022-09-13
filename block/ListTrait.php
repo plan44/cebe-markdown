@@ -176,7 +176,10 @@ trait ListTrait
 		}
 
 		foreach ($block['items'] as $item => $itemLines) {
-			$output .= '<li>' . $this->renderAbsy($itemLines). "</li>\n";
+			$itemcontent = $this->renderAbsy($itemLines);
+			if (!empty($itemcontent)) {
+				$output .= '<li>' . $itemcontent . "</li>\n";
+			}
 		}
 		return $output . "</$type>\n";
 	}
